@@ -188,9 +188,9 @@
    ```yaml
    server:
      port: 8080
-   shutdown: graceful
+   shutdown: graceful # switch to a graceful mode
    tomcat:
-     connection-timeout: 2s
+     connection-timeout: 2s # default 20s
      keep-alive-timeout: 15s
      threads:
        max: 50
@@ -200,8 +200,13 @@
      application:
        name: catalog-service
      lifecycle:
-       timeout-per-shutdown-phase: 15s
+       timeout-per-shutdown-phase: 15s # default is 30s
    ```
+
+   - The `server.tomcat.connection-timeout` property defines a limit for how much time Tomcat should wait between accepting a TCP connection from a client and actually receiving the HTTP request.
+   - The `server.tomcat.keep-alive-timeout` property defines how long to keep a connection open while waiting for new HTTP requests.
+   - The `server.shutdown` property defines shutdown mode. By default, Spring Boot stops the server immediately after receiving a termination signal (`SIGTERM`). You can switch to a graceful mode by configuring the `server.shutdown` property.
+   - The `spring.lifecycle.timeout-per-shutdown-phase` properties defines a grace period. By default the grace period is 30 seconds.
 
 4. Build docker image
 
@@ -335,9 +340,21 @@
        - image: greeting-service:0.0.3-SNAPSHOT
          imagePullPolicy: IfNotPresent
          name: greeting-service
+         livenessProbe:
+           httpGet:
+             path: /actuator/health/liveness
+             port: 8080
+           initialDelaySeconds: 10
+           periodSeconds: 5
+         readinessProbe:
+           httpGet:
+             path: /actuator/health/readiness
+             port: 8080
+           initialDelaySeconds: 5
+           periodSeconds: 15
    ```
 
-8. Proof Graceful Shutdown
+8. Proof Health Check
 
    ![run test](./images/run-test-with-hey.png)
 
@@ -364,17 +381,28 @@
     ```sh
     curl http://localhost:8080/actuator/health
     curl http://localhost:8080/actuator/health/liveness
-    curl http://localhost:8080/actuator/health/rediness
+    curl http://localhost:8080/actuator/health/readiness
     ```
+
+11. What is liveness and readiness?
+
+|                                                   | Liveness                                                      | Readiness                                                                               |
+| :------------------------------------------------ | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------- |
+| Semantic meaning                                  | Is the container running?                                     | Is the container ready to receive traffic?                                              |
+| Implication of probe failures exceeding threshold | Pod is terminated and replaced.                               | Pod is removed from receiving traffic until the probe passes.                           |
+| Time to recover from a failed probe               | Slow: Pod is rescheduled on fail- ure and needs time to boot. | Fast: Pod is already running and can immediately receive traffic once the probe passes. |
+| Default state at container boot                   | Passing (live).                                               | Failing (unready).                                                                      |
+
+- from `Wiliam Denniss, Kubernetes for Developers(Manning Publications Co.), p. 80.`
 
 ---
 
-## Trip set `perStop` at container's lifecycle
+## Tip set `preStop` at container's lifecycle
 
 ```yaml
 spec:
   containers:
-    - image: greeting-service:0.0.2-SNAPSHOT
+    - image: greeting-service:0.0.4-SNAPSHOT
       imagePullPolicy: IfNotPresent
       name: greeting-service
       lifecycle:
