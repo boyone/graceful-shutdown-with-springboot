@@ -74,8 +74,8 @@
    spec:
      ports:
        - port: 8080
-       protocol: TCP
-       targetPort: 8080
+         protocol: TCP
+         targetPort: 8080
      selector:
        app: greeting-service
      type: LoadBalancer
