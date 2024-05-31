@@ -390,7 +390,7 @@
 | :------------------------------------------------ | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------- |
 | Semantic meaning                                  | Is the container running?                                     | Is the container ready to receive traffic?                                              |
 | Implication of probe failures exceeding threshold | Pod is terminated and replaced.                               | Pod is removed from receiving traffic until the probe passes.                           |
-| Time to recover from a failed probe               | Slow: Pod is rescheduled on fail- ure and needs time to boot. | Fast: Pod is already running and can immediately receive traffic once the probe passes. |
+| Time to recover from a failed probe               | Slow: Pod is rescheduled on failure and needs time to boot. | Fast: Pod is already running and can immediately receive traffic once the probe passes. |
 | Default state at container boot                   | Passing (live).                                               | Failing (unready).                                                                      |
 
 - from `Wiliam Denniss, Kubernetes for Developers(Manning Publications Co.), p. 80.`
