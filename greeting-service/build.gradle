@@ -21,6 +21,12 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+bootBuildImage {
+	builder = "docker.io/paketobuildpacks/builder-jammy-base"
+	imageName = "${project.name}:${version}"
+	environment = ["BP_JVM_VERSION": "17"]
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
