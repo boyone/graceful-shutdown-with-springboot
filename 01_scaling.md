@@ -1,4 +1,4 @@
-# Graceful Shutdown
+# Scaling
 
 ## Prerequisite
 
@@ -110,7 +110,7 @@
 
 ---
 
-## Test Scaling Up
+## Test Scale-Out
 
 1. Change `replecas` from 2 to 3 at `deployment.yaml`
 
@@ -162,9 +162,7 @@
    [XXXXX]	Get "http://localhost:8080": EOF
    ```
 
-4. What happens during scaling?
-
----
+4. What happens during scale-out?
 
 ## Add Health Check
 
@@ -306,7 +304,7 @@
 
 ---
 
-## Test Scaling Down
+## Test Scale-In
 
 1. Add Delay to Application
 
@@ -420,9 +418,7 @@
    [XXXXX]	Get "http://localhost:8080": EOF
    ```
 
-10. What happens during scaling down?
-
----
+10. What happens during scale-in?
 
 ## Add Graceful Shutdown
 
