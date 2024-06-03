@@ -3,8 +3,7 @@
 ## Prerequisite
 
 1. [k3d](https://k3d.io/v5.6.3/)
-2. [hey](https://github.com/rakyll/hey)
-3. [docker](https://www.docker.com/)
+2. [docker](https://www.docker.com/)
 
 ## Getting Start
 
@@ -72,7 +71,7 @@
        app: greeting-service
      name: greeting-service
    spec:
-     replicas: 2
+     replicas: 1
      selector:
        matchLabels:
          app: greeting-service
@@ -109,7 +108,7 @@
    workspace's skeleton:
 
    ```txt
-   scaling
+   observability_metric
      |-greeting-service
      |-k8s
        |-deployment.yaml
@@ -219,7 +218,7 @@
     - Change directory to `k8s/prometheus`
 
       ```sh
-        cd prometheus
+      cd prometheus
       ```
 
 2. Prepare files
@@ -285,7 +284,7 @@
 
 ---
 
-### Deploy Grafana for dashboard
+## Deploy Grafana for dashboard
 
 1. Create and Change Working Directory
 

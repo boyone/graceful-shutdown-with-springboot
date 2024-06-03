@@ -1,27 +1,144 @@
 # Observability Logging
 
+## Prerequisite
+
+1. [k3d](https://k3d.io/v5.6.3/)
+2. [docker](https://www.docker.com/)
+
+## Getting Start
+
+1. Open `terminal` and change directory to `observability_logging`
+
+   ```sh
+   cd observability_logging
+   ```
+
+2. Build image
+
+   ```sh
+   cd greeting-service
+   ./gradlew bootBuildImage
+   docker image ls
+   ```
+
 ### Hello Kubernetes with `k3d`
 
-1. Create Cluster
+1. Continue use cluster from `observability_metric`, import image to cluster
 
     ```sh
-      k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
-      kubectl get nodes
+      k3d image import greeting-service:0.0.1-SNAPSHOT-LOGGING --cluster default
     ```
 
-    - Delete Cluster `k3d cluster delete default`
+2. Create `k8s` directory to contains k8s-manifest
+
+   - Change directory to root-working-directory(`observability_logging`)
+
+     ```sh
+     cd ../
+     ```
+
+   - Create directory call `k8s`
+
+     ```sh
+     mkdir k8s
+     ```
+
+     workspace's skeleton:
+
+     ```txt
+     observability_logging
+       |-greeting-service
+       |-k8s
+     ```
+
+   - Change directory to `k8s`
+
+     ```sh
+     cd k8s
+     ```
+
+3. Create Deployment call deployment.yaml
+
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     labels:
+       app: greeting-service
+     name: greeting-service
+   spec:
+     replicas: 1
+     selector:
+       matchLabels:
+         app: greeting-service
+     template:
+       metadata:
+         labels:
+           app: greeting-service
+       spec:
+         containers:
+           - image: greeting-service:0.0.1-SNAPSHOT-LOGGING
+             imagePullPolicy: IfNotPresent
+             name: greeting-service
+   ```
+
+4. Create Service service.yaml
+
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     labels:
+       app: greeting-service
+     name: greeting-service
+   spec:
+     ports:
+       - port: 8080
+         protocol: TCP
+         targetPort: 8080
+     selector:
+       app: greeting-service
+     type: LoadBalancer
+   ```
+
+   workspace's skeleton:
+
+   ```txt
+   observability_logging
+     |-greeting-service
+     |-k8s
+       |-deployment.yaml
+       |-service.yaml
+   ```
+
+5. Create Deployment with `apply`
+
+   ```sh
+   kubectl apply -f deployment.yaml
+   kubectl get deployments
+   kubectl get pods
+   ```
+
+6. Create Service with `apply`
+
+   ```sh
+   kubectl apply -f service.yaml
+   kubectl get service
+   ```
+
+7. Open http://localhost:8080
 
 ---
 
-### Deploy Loki for logging
+## Deploy Loki for logging
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/monitoring/loki`
-    - Change directory to `k8s/monitoring/loki`
+    - Create directory call `k8s/loki`
+    - Change directory to `k8s/loki`
 
       ```sh
-        cd monitoring/loki
+      cd loki
       ```
 
 2. Prepare files
@@ -58,23 +175,25 @@
     - Update dependencies
 
       ```sh
-        helm dependency update
+      helm dependency update
       ```
     - Running prometheus
 
       ```sh
-        helm upgrade -i loki . -n monitoring --create-namespace
+      helm upgrade -i loki . -n monitoring --create-namespace
       ```
 
 ---
 
-### Create dashboard with Grafana
+## Create dashboard with Grafana
 
-1. Set datasources from Loki in Grafana
+1. Go to Grafana: http://grafana.example.com:8888
+
+2. Add new datasources with Loki
 
     - Loki server URL: `http://loki:3100`
 
-2. Create dashboard
+3. Create dashboard
 
     -  Query log
 
