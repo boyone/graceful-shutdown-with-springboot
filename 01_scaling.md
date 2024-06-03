@@ -495,17 +495,7 @@
    k3d image import greeting-service:0.0.4-SNAPSHOT --cluster default
    ```
 
-6. Change image from `greeting-service:0.0.3-SNAPSHOT` to `greeting-service:0.0.4-SNAPSHOT` at `deployment.yaml` file
-
-   ```yaml
-   spec:
-     containers:
-       - image: greeting-service:0.0.4-SNAPSHOT
-         imagePullPolicy: IfNotPresent
-         name: greeting-service
-   ```
-
-7. Change `replecas` from 2 to 4 at `deployment.yaml`
+6. Change `replecas` from 2 to 4 and change image from `greeting-service:0.0.3-SNAPSHOT` to `greeting-service:0.0.4-SNAPSHOT` at `deployment.yaml`
 
    ```yaml
    apiVersion: apps/v1
@@ -525,18 +515,18 @@
            app: greeting-service
        spec:
          containers:
-           - image: greeting-service:0.0.4-SNAPSHOT
+           - image: greeting-service:0.0.4-SNAPSHOT # change from 0.0.3 to 0.0.4
              imagePullPolicy: IfNotPresent
              name: greeting-service
    ```
 
-8. Apply Change
+7. Apply Change
 
    ```sh
      kubectl apply -f deployment.yaml
    ```
 
-9. Scale Down by set `replecas` from 4 to 3 at `deployment.yaml`
+8. Scale Down by set `replecas` from 4 to 3 at `deployment.yaml`
 
    ```yaml
    apiVersion: apps/v1
@@ -561,27 +551,27 @@
              name: greeting-service
    ```
 
-10. Proof Graceful Shutdown
+9. Proof Graceful Shutdown
 
-    ![run test](./images/run-test-with-hey.png)
+   ![run test](./images/run-test-with-hey.png)
 
-    1. Open new terminal and type following command[`test terminal`]
+   1. Open new terminal and type following command[`test terminal`]
 
-       ```sh
-       hey -c 20 -z 10s http://localhost:8080
-       ```
+      ```sh
+      hey -c 20 -z 10s http://localhost:8080
+      ```
 
-    2. Switch to previous terminal then type following command[`apply terminal`]
+   2. Switch to previous terminal then type following command[`apply terminal`]
 
-       - `k8s` directory
+      - `k8s` directory
 
-       ```sh
-       kubectl apply -f deployment.yaml
-       ```
+      ```sh
+      kubectl apply -f deployment.yaml
+      ```
 
-    3. Press `enter` on `test terminal` and switch to `apply terminal` immediately then press `enter`
+   3. Press `enter` on `test terminal` and switch to `apply terminal` immediately then press `enter`
 
-11. What happens?
+10. What happens?
 
 ---
 
