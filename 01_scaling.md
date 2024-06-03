@@ -28,9 +28,26 @@
 
    - Delete Cluster `k3d cluster delete default`
 
-2. Create and Change Working Directory
+2. Create `k8s` directory to contains k8s-manifest
+
+   ```txt
+   <working-directory>
+     |-greeting-service
+     |-k8s
+   ```
+
+   - Change directory to root-working-directory
+
+     ```sh
+     cd ../
+     ```
 
    - Create directory call `k8s`
+
+     ```sh
+     mkdir k8s
+     ```
+
    - Change directory to `k8s`
 
      ```sh
