@@ -17,8 +17,8 @@ spring:
 management:
   endpoints: # exposing the health Actuator endpoint
     web:
-    exposure:
-      include: health
+      exposure:
+        include: health
   endpoint:
     health:
       show-details: always

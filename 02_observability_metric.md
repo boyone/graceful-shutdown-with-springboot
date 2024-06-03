@@ -131,11 +131,7 @@
    kubectl get service
    ```
 
-7. Test with curl
-
-   ```sh
-   curl http://localhost:8080/
-   ```
+7. Open http://localhost:8080/actuator
 
 ---
 
@@ -168,8 +164,8 @@
     management:
       endpoints:
         web:
-        exposure:
-          include: health, metrics, prometheus   <================ Update here
+          exposure:
+            include: "health, metrics, prometheus"   <================ Update here
 
     ...
       
@@ -211,8 +207,7 @@
     kubectl apply -f deployment.yaml
     ```
 
-7. Open http://localhost:8080/actuator
-
+7. Open http://localhost:8080/actuator, should see `prometheus` path
 
 ---
 
@@ -255,16 +250,16 @@
             enabled: true
             hosts:
               - prometheus.example.com
-          serverFiles:
-        prometheus.yml:
-          scrape_configs:
-            - job_name: 'spring-boot-application'
-              metrics_path: '/actuator/prometheus'
-              scrape_interval: 3s # This can be adjusted based on our needs
-              static_configs:
-                - targets: ['greeting-service.default.svc.cluster.local:8080']
-                  labels:
-                    application: 'Greeting service'
+        serverFiles:
+          prometheus.yml:
+            scrape_configs:
+              - job_name: 'spring-boot-application'
+                metrics_path: '/actuator/prometheus'
+                scrape_interval: 3s # This can be adjusted based on our needs
+                static_configs:
+                  - targets: ['greeting-service.default.svc.cluster.local:8080']
+                    labels:
+                      application: 'Greeting service'
       ```
 
 3. Running Prometheus with Helm
@@ -272,18 +267,18 @@
     - Add repository
     
       ```sh
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
       ```
 
     - Update dependencies
 
       ```sh
-        helm dependency update
+      helm dependency update
       ```
     - Running prometheus
 
       ```sh
-        helm upgrade -i prometheus . -n monitoring --create-namespace
+      helm upgrade -i prometheus . -n monitoring --create-namespace
       ```
 
     - Open: http://prometheus.example.com:8888
@@ -298,7 +293,7 @@
     - Change directory to `k8s/grafana`
 
       ```sh
-        cd grafana
+      cd grafana
       ```
 
 2. Prepare files
@@ -306,28 +301,28 @@
     - Create `Chart.yaml`
 
       ```yaml
-        apiVersion: v2
-        name: my-grafana-helm
-        description: A Helm chart for Grafana Demo
-        type: application
-        version: 1.0.0
+      apiVersion: v2
+      name: my-grafana-helm
+      description: A Helm chart for Grafana Demo
+      type: application
+      version: 1.0.0
 
-        dependencies:
-          - name: "grafana"
-            alias: grafana
-            condition: grafana.enabled
-            repository: "https://grafana.github.io/helm-charts"
-            version: "7.3.8"
+      dependencies:
+        - name: "grafana"
+          alias: grafana
+          condition: grafana.enabled
+          repository: "https://grafana.github.io/helm-charts"
+          version: "8.0.0"
       ```
 
    - Create `values.yaml`
 
       ```yaml
-        grafana:
-          ingress:
-            enabled: true
-            hosts:
-              - grafana.example.com
+      grafana:
+        ingress:
+          enabled: true
+          hosts:
+            - grafana.example.com
       ```
 
 3. Running Grafana with Helm
@@ -335,18 +330,18 @@
     - Add repository
 
       ```sh
-        helm repo add grafana https://grafana.github.io/helm-charts
+      helm repo add grafana https://grafana.github.io/helm-charts
       ```
 
     - Update dependencies
 
       ```sh
-        helm dependency update
+      helm dependency update
       ```
     - Running prometheus
 
       ```sh
-        helm upgrade -i grafana . -n monitoring --create-namespace
+      helm upgrade -i grafana . -n monitoring --create-namespace
       ```
 
     - Open: http://grafana.example.com:8888
@@ -363,3 +358,4 @@
 5. Set datasources from Prometheus
 
     - Prometheus server URL: `http://prometheus-server`
+    - Import dashboard id: `11378`
