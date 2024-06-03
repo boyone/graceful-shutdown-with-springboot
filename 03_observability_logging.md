@@ -26,7 +26,7 @@
 1. Continue use cluster from `observability_metric`, import image to cluster
 
     ```sh
-      k3d image import greeting-service:0.0.1-SNAPSHOT-LOGGING --cluster default
+    k3d image import greeting-service:0.0.1-SNAPSHOT-LOGGING --cluster default
     ```
 
 2. Create `k8s` directory to contains k8s-manifest
