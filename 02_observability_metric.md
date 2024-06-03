@@ -1,37 +1,163 @@
 # Observability Metric
 
+## Prerequisite
+
+1. [k3d](https://k3d.io/v5.6.3/)
+2. [hey](https://github.com/rakyll/hey)
+3. [docker](https://www.docker.com/)
+
+## Getting Start
+
+1. Open `terminal` and change directory to `observability_metric`
+
+   ```sh
+   cd observability_metric
+   ```
+
+2. Build image
+
+   ```sh
+   cd greeting-service
+   ./gradlew bootBuildImage
+   docker image ls
+   ```
+
 ### Hello Kubernetes with `k3d`
 
 1. Create Cluster
 
     ```sh
       k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
+      k3d image import greeting-service:0.0.1-SNAPSHOT-METRIC --cluster default
       kubectl get nodes
     ```
 
     - Delete Cluster `k3d cluster delete default`
 
+2. Create `k8s` directory to contains k8s-manifest
+
+   - Change directory to root-working-directory(`observability_metric`)
+
+     ```sh
+     cd ../
+     ```
+
+   - Create directory call `k8s`
+
+     ```sh
+     mkdir k8s
+     ```
+
+     workspace's skeleton:
+
+     ```txt
+     observability_metric
+       |-greeting-service
+       |-k8s
+     ```
+
+   - Change directory to `k8s`
+
+     ```sh
+     cd k8s
+     ```
+
+3. Create Deployment call deployment.yaml
+
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     labels:
+       app: greeting-service
+     name: greeting-service
+   spec:
+     replicas: 2
+     selector:
+       matchLabels:
+         app: greeting-service
+     template:
+       metadata:
+         labels:
+           app: greeting-service
+       spec:
+         containers:
+           - image: greeting-service:0.0.1-SNAPSHOT-METRIC
+             imagePullPolicy: IfNotPresent
+             name: greeting-service
+   ```
+
+4. Create Service service.yaml
+
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     labels:
+       app: greeting-service
+     name: greeting-service
+   spec:
+     ports:
+       - port: 8080
+         protocol: TCP
+         targetPort: 8080
+     selector:
+       app: greeting-service
+     type: LoadBalancer
+   ```
+
+   workspace's skeleton:
+
+   ```txt
+   scaling
+     |-greeting-service
+     |-k8s
+       |-deployment.yaml
+       |-service.yaml
+   ```
+
+5. Create Deployment with `apply`
+
+   ```sh
+   kubectl apply -f deployment.yaml
+   kubectl get deployments
+   kubectl get pods
+   ```
+
+6. Create Service with `apply`
+
+   ```sh
+   kubectl apply -f service.yaml
+   kubectl get service
+   ```
+
+7. Test with curl
+
+   ```sh
+   curl http://localhost:8080/
+   ```
+
 ---
 
-### Config application for support metrics
+## Config application for support metrics
 
-1. Add packages and update artifact version
+1. Add packages, update `build.gradle` file
 
-    - Update `build.gradle` file
+    ```gradle
 
-      ```gradle
-      version = '0.0.4-SNAPSHOT'   <============ update here
+    version = '0.0.2-SNAPSHOT-METRIC'      <============ change here
 
-      ...
+    ...
 
-      dependencies {
-
-        ...
-        
-        implementation 'io.micrometer:micrometer-registry-prometheus'             <============ add here
-      }
-      
-      ```
+    dependencies {
+      implementation 'org.springframework.boot:spring-boot-starter-web'
+      implementation 'org.springframework.boot:spring-boot-starter-actuator'
+      implementation 'io.micrometer:micrometer-registry-prometheus'             <============ add here
+      testImplementation 'org.springframework.boot:spring-boot-starter-test'
+      testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+    
+    ```
 
 2. Update `/src/main/resources/application.yaml`
 
@@ -49,11 +175,10 @@
       
     ```
 
-3. Build docker image
-
-   - Change directory to `greeting-service`
+3. Build docker image again
 
    ```sh
+   cd ../greeting-service
    ./gradlew bootBuildImage
    docker image ls
    ```
@@ -61,10 +186,10 @@
 4. Load image to cluster
 
    ```sh
-   k3d image import greeting-service:0.0.4-SNAPSHOT --cluster default
+   k3d image import greeting-service:0.0.2-SNAPSHOT-METRIC --cluster default
    ```
 
-5. Change image to `greeting-service:0.0.4-SNAPSHOT` at `deployment.yaml` file
+5. Change `spec.containers.image` to `greeting-service:0.0.2-SNAPSHOT-METRIC` at `deployment.yaml`
 
     ```yaml
     
@@ -72,7 +197,7 @@
 
     spec:
       containers:
-        - image: greeting-service:0.0.4-SNAPSHOT      <============== change here
+        - image: greeting-service:0.0.2-SNAPSHOT-METRIC     <============== change here
           imagePullPolicy: IfNotPresent
           name: greeting-service
 
@@ -91,15 +216,15 @@
 
 ---
 
-### Deploy Prometheus for metrics
+## Deploy Prometheus for metric
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/monitoring/prometheus`
-    - Change directory to `k8s/monitoring/prometheus`
+    - Create directory call `k8s/prometheus`
+    - Change directory to `k8s/prometheus`
 
       ```sh
-        cd monitoring/prometheus
+        cd prometheus
       ```
 
 2. Prepare files
@@ -169,11 +294,11 @@
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/monitoring/grafana`
-    - Change directory to `k8s/monitoring/grafana`
+    - Create directory call `k8s/grafana`
+    - Change directory to `k8s/grafana`
 
       ```sh
-        cd monitoring/grafana
+        cd grafana
       ```
 
 2. Prepare files
