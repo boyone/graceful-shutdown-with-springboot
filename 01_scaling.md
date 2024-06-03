@@ -8,7 +8,13 @@
 
 ## Getting Start
 
-1. Build image
+1. Open `terminal` and change directory to `scaling`
+
+   ```sh
+   cd scaling
+   ```
+
+2. Build image
 
    ```sh
    cd greeting-service
@@ -30,13 +36,7 @@
 
 2. Create `k8s` directory to contains k8s-manifest
 
-   ```txt
-   <working-directory>
-     |-greeting-service
-     |-k8s
-   ```
-
-   - Change directory to root-working-directory
+   - Change directory to root-working-directory(`scaling`)
 
      ```sh
      cd ../
@@ -46,6 +46,14 @@
 
      ```sh
      mkdir k8s
+     ```
+
+     workspace's skeleton:
+
+     ```txt
+     scaling
+       |-greeting-service
+       |-k8s
      ```
 
    - Change directory to `k8s`
@@ -96,6 +104,16 @@
      selector:
        app: greeting-service
      type: LoadBalancer
+   ```
+
+   workspace's skeleton:
+
+   ```txt
+   scaling
+     |-greeting-service
+     |-k8s
+       |-deployment.yaml
+       |-service.yaml
    ```
 
 5. Create Deployment with `apply`
