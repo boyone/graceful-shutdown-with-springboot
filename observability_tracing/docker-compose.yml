@@ -1,0 +1,17 @@
+services:
+  user_db:
+    image: 'postgres:16.3'
+    environment:
+      POSTGRES_DB: user
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d/
+    ports:
+      - '5434:5432'
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -h localhost -p 5432 -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 10s
+      retries: 60

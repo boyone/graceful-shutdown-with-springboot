@@ -13,6 +13,14 @@ spring:
     name: greeting-service
   lifecycle:
     timeout-per-shutdown-phase: 15s # default is 30s
+  datasource:
+    url: jdbc:postgresql://localhost:5434/user
+    username: postgres
+    password: postgres
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 management:
   endpoints: # exposing the health Actuator endpoint
@@ -25,3 +33,4 @@ management:
       show-components: always
       probes:
         enabled: true
+

@@ -21,6 +21,13 @@
    docker image ls
    ```
 
+3. Start postgres for assume external database
+
+   ```sh
+   cd ..
+   docker compose up
+   ```
+
 ### Hello Kubernetes with `k3d`
 
 1. Continue use cluster from `observability_metric`, import image to cluster
@@ -59,40 +66,46 @@
 
 3. Create Deployment call deployment.yaml
 
-   ```yaml
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     labels:
-       app: greeting-service
-     name: greeting-service
-   spec:
-     replicas: 1
-     selector:
-       matchLabels:
-         app: greeting-service
-     template:
-       metadata:
-         labels:
-           app: greeting-service
-       spec:
-         containers:
-           - image: greeting-service:0.0.1-SNAPSHOT-TRACING
-             imagePullPolicy: IfNotPresent
-             name: greeting-service
-         env:
-           - name: OTEL_EXPORTER_OTLP_ENDPOINT
-             value: http://tempo.monitoring.svc.cluster.local:4317
-           - name: OTEL_EXPORTER_OTLP_PROTOCOL
-             value: grpc
-           - name: OTEL_RESOURCE_ATTRIBUTES
-             value: service.name=greeting
-           - name: OTEL_LOGS_EXPORTER
-             value: none
-           - name: OTEL_METRICS_EXPORTER
-             value: none
-           - name: OTEL_TRACES_EXPORTER
-             value: otlp
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: greeting-service
+      name: greeting-service
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: greeting-service
+      template:
+        metadata:
+          labels:
+            app: greeting-service
+        spec:
+          containers:
+            - image: greeting-service:0.0.1-SNAPSHOT-TRACING
+              imagePullPolicy: IfNotPresent
+              name: greeting-service
+              env:
+                - name: SPRING_DATASOURCE_URL
+                  value: jdbc:postgresql://host.k3d.internal:5434/user
+                - name: SPRING_DATASOURCE_USERNAME
+                  value: postgres
+                - name: SPRING_DATASOURCE_PASSWORD
+                  value: postgres
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: http://tempo.monitoring.svc.cluster.local:4317
+                - name: OTEL_EXPORTER_OTLP_PROTOCOL
+                  value: grpc
+                - name: OTEL_RESOURCE_ATTRIBUTES
+                  value: service.name=greeting
+                - name: OTEL_LOGS_EXPORTER
+                  value: none
+                - name: OTEL_METRICS_EXPORTER
+                  value: none
+                - name: OTEL_TRACES_EXPORTER
+                  value: otlp
    ```
 
 4. Create Service service.yaml
