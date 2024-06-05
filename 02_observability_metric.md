@@ -246,16 +246,14 @@
            enabled: true
            hosts:
              - prometheus.example.com
-       serverFiles:
-         prometheus.yml:
-           scrape_configs:
-             - job_name: 'spring-boot-application'
-               metrics_path: '/actuator/prometheus'
-               scrape_interval: 3s # This can be adjusted based on our needs
-               static_configs:
-                 - targets: ['greeting-service.default.svc.cluster.local:8080']
-                   labels:
-                     application: 'Greeting service'
+       extraScrapeConfigs: |
+         - job_name: 'spring-boot-application'
+           metrics_path: '/actuator/prometheus'
+           scrape_interval: 3s # This can be adjusted based on our needs
+           static_configs:
+             - targets: ['greeting-service.default.svc.cluster.local:8080']
+               labels:
+                 application: 'Greeting service'
      ```
 
 3. Running Prometheus with Helm

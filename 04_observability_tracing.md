@@ -25,7 +25,7 @@
 
    ```sh
    cd ..
-   docker compose up
+   docker compose up -d
    ```
 
 ### Hello Kubernetes with `k3d`
