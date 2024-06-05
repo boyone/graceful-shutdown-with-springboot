@@ -23,13 +23,20 @@
 
 ### Hello Kubernetes with `k3d`
 
-1. Continue use cluster from `observability_metric`, import image to cluster
+1. Create Cluster
 
-    ```sh
-    k3d image import greeting-service:0.0.1-SNAPSHOT-LOGGING --cluster default
-    ```
+   ```sh
+   k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
+   kubectl get nodes
+   ```
 
-2. Create `k8s` directory to contains k8s-manifest
+2. Import image to cluster
+
+   ```sh
+   k3d image import greeting-service:0.0.1-SNAPSHOT-LOGGING --cluster default
+   ```
+
+3. Create `k8s` directory to contains k8s-manifest
 
    - Change directory to root-working-directory(`observability_logging`)
 
@@ -57,7 +64,7 @@
      cd k8s
      ```
 
-3. Create Deployment call deployment.yaml
+4. Create Deployment call deployment.yaml
 
    ```yaml
    apiVersion: apps/v1
@@ -82,7 +89,7 @@
              name: greeting-service
    ```
 
-4. Create Service service.yaml
+5. Create Service service.yaml
 
    ```yaml
    apiVersion: v1
@@ -111,7 +118,7 @@
        |-service.yaml
    ```
 
-5. Create Deployment with `apply`
+6. Create Deployment with `apply`
 
    ```sh
    kubectl apply -f deployment.yaml
@@ -119,14 +126,14 @@
    kubectl get pods
    ```
 
-6. Create Service with `apply`
+7. Create Service with `apply`
 
    ```sh
    kubectl apply -f service.yaml
    kubectl get service
    ```
 
-7. Open http://localhost:8080
+8. Open http://localhost:8080
 
 ---
 
@@ -134,54 +141,128 @@
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/loki`
-    - Change directory to `k8s/loki`
+   - Create directory call `k8s/loki`
+   - Change directory to `k8s/loki`
 
-      ```sh
-      cd loki
-      ```
+     ```sh
+     cd loki
+     ```
 
 2. Prepare files
 
-    - Create `Chart.yaml`
+   - Create `Chart.yaml`
 
-      ```yaml
-      apiVersion: v2
-      name: my-loki-helm
-      description: A Helm chart for Loki Demo
-      type: application
-      version: 1.0.0
+     ```yaml
+     apiVersion: v2
+     name: my-loki-helm
+     description: A Helm chart for Loki Demo
+     type: application
+     version: 1.0.0
 
-      dependencies:
-        - name: "loki-stack"
-          alias: loki
-          condition: loki-stack.enabled
-          repository: "https://grafana.github.io/helm-charts"
-          version: "2.10.2"
-      ```
+     dependencies:
+       - name: 'loki-stack'
+         alias: loki
+         condition: loki-stack.enabled
+         repository: 'https://grafana.github.io/helm-charts'
+         version: '2.10.2'
+     ```
 
    - Create `values.yaml`
 
-      ```yaml
-      loki:
-        loki:
-          image:
-            repository: grafana/loki
-            tag: 2.9.3
-      ```
+     ```yaml
+     loki:
+       loki:
+         image:
+           repository: grafana/loki
+           tag: 2.9.3
+     ```
 
 3. Running Loki with Helm
 
-    - Update dependencies
+   - Update dependencies
 
-      ```sh
-      helm dependency update
-      ```
-    - Running prometheus
+     ```sh
+     helm dependency update
+     ```
 
-      ```sh
-      helm upgrade -i loki . -n monitoring --create-namespace
-      ```
+   - Running Loki
+
+     ```sh
+     helm upgrade -i loki . -n monitoring --create-namespace
+     ```
+
+---
+
+## Deploy Grafana for dashboard
+
+1. Create and Change Working Directory
+
+   - Create directory call `k8s/grafana`
+   - Change directory to `k8s/grafana`
+
+     ```sh
+     cd grafana
+     ```
+
+2. Prepare files
+
+   - Create `Chart.yaml`
+
+     ```yaml
+     apiVersion: v2
+     name: my-grafana-helm
+     description: A Helm chart for Grafana Demo
+     type: application
+     version: 1.0.0
+
+     dependencies:
+       - name: 'grafana'
+         alias: grafana
+         condition: grafana.enabled
+         repository: 'https://grafana.github.io/helm-charts'
+         version: '8.0.0'
+     ```
+
+   - Create `values.yaml`
+
+     ```yaml
+     grafana:
+       ingress:
+         enabled: true
+         hosts:
+           - grafana.example.com
+     ```
+
+3. Running Grafana with Helm
+
+   - Add repository
+
+     ```sh
+     helm repo add grafana https://grafana.github.io/helm-charts
+     ```
+
+   - Update dependencies
+
+     ```sh
+     helm dependency update
+     ```
+
+   - Running prometheus
+
+     ```sh
+     helm upgrade -i grafana . -n monitoring --create-namespace
+     ```
+
+   - Open: http://grafana.example.com:8888
+
+4. Login
+
+   - Username: **admin**
+   - Password:
+
+     ```sh
+     kubectl get secret grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+     ```
 
 ---
 
@@ -189,24 +270,33 @@
 
 1. Go to Grafana: http://grafana.example.com:8888
 
+   - Login
+
+     - Username: **admin**
+     - Password:
+
+       ```sh
+       kubectl get secret grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+       ```
+
 2. Add new datasources with Loki
 
-    - Loki server URL: `http://loki:3100`
+   - Loki server URL: `http://loki:3100`
 
 3. Create dashboard
 
-    -  Query log
+   - Query log
 
-        ![setup-logging-dashboard-01.png](/images/setup-logging-dashboard-01.png)
+     ![setup-logging-dashboard-01.png](/images/setup-logging-dashboard-01.png)
 
-    -  Add new dashboard
+   - Add new dashboard
 
-        ![setup-logging-dashboard-02.png](/images/setup-logging-dashboard-02.png)
+     ![setup-logging-dashboard-02.png](/images/setup-logging-dashboard-02.png)
 
-        ![setup-logging-dashboard-03.png](/images/setup-logging-dashboard-03.png)
+     ![setup-logging-dashboard-03.png](/images/setup-logging-dashboard-03.png)
 
-    -  Custom dashboard then save dashboard
+   - Custom dashboard then save dashboard
 
-        ![setup-logging-dashboard-04.png](/images/setup-logging-dashboard-04.png)
+     ![setup-logging-dashboard-04.png](/images/setup-logging-dashboard-04.png)
 
-        ![setup-logging-dashboard-05.png](/images/setup-logging-dashboard-05.png)
+     ![setup-logging-dashboard-05.png](/images/setup-logging-dashboard-05.png)
