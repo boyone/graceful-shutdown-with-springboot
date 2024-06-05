@@ -108,6 +108,8 @@
                   value: otlp
    ```
 
+   Reference: <https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_protocol>
+
 4. Create Service service.yaml
 
    ```yaml
@@ -152,7 +154,7 @@
    kubectl get service
    ```
 
-7. Open http://localhost:8080
+7. Open <http://localhost:8080>
 
 ---
 
@@ -193,6 +195,7 @@
       ```sh
       helm dependency update
       ```
+
     - Running prometheus
 
       ```sh
@@ -203,7 +206,7 @@
 
 ## Create dashboard with Grafana
 
-1. Go to Grafana: http://grafana.example.com:8888
+1. Go to Grafana: <http://grafana.example.com:8888>
 
 2. Add new datasources with Loki
 
@@ -211,17 +214,17 @@
 
 3. Create dashboard
 
-    -  Query trace
+    - Query trace
 
         ![setup-tracing-dashboard-01.png](/images/setup-tracing-dashboard-01.png)
 
-    -  Add new dashboard
+    - Add new dashboard
 
         ![setup-tracing-dashboard-02.png](/images/setup-tracing-dashboard-02.png)
 
         ![setup-tracing-dashboard-03.png](/images/setup-tracing-dashboard-03.png)
 
-    -  Custom dashboard then save dashboard
+    - Custom dashboard then save dashboard
 
         ![setup-tracing-dashboard-04.png](/images/setup-tracing-dashboard-04.png)
 
