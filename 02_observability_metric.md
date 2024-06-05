@@ -4,6 +4,7 @@
 
 1. [k3d](https://k3d.io/v5.6.3/)
 2. [docker](https://www.docker.com/)
+3. [helm](https://helm.sh/docs/intro/install/)
 
 ## Getting Start
 
@@ -25,13 +26,13 @@
 
 1. Create Cluster
 
-    ```sh
-      k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
-      k3d image import greeting-service:0.0.1-SNAPSHOT-METRIC --cluster default
-      kubectl get nodes
-    ```
+   ```sh
+   k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
+   k3d image import greeting-service:0.0.1-SNAPSHOT-METRIC --cluster default
+   kubectl get nodes
+   ```
 
-    - Delete Cluster `k3d cluster delete default`
+   - Delete Cluster `k3d cluster delete default`
 
 2. Create `k8s` directory to contains k8s-manifest
 
@@ -138,37 +139,37 @@
 
 1. Add packages, update `build.gradle` file
 
-    ```gradle
+   ```gradle
 
-    version = '0.0.2-SNAPSHOT-METRIC'      <============ change here
+   version = '0.0.2-SNAPSHOT-METRIC'      <============ change here
 
-    ...
+   ...
 
-    dependencies {
-      implementation 'org.springframework.boot:spring-boot-starter-web'
-      implementation 'org.springframework.boot:spring-boot-starter-actuator'
-      implementation 'io.micrometer:micrometer-registry-prometheus'             <============ add here
-      testImplementation 'org.springframework.boot:spring-boot-starter-test'
-      testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    }
-    
-    ```
+   dependencies {
+     implementation 'org.springframework.boot:spring-boot-starter-web'
+     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+     implementation 'io.micrometer:micrometer-registry-prometheus'             <============ add here
+     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+   }
+
+   ```
 
 2. Update `/src/main/resources/application.yaml`
 
-    ```yaml
+   ```yaml
 
-    ...
+   ...
 
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: "health, metrics, prometheus"   <================ Update here
+   management:
+     endpoints:
+       web:
+         exposure:
+           include: "health, metrics, prometheus"   <================ Update here
 
-    ...
-      
-    ```
+   ...
+
+   ```
 
 3. Build docker image again
 
@@ -186,25 +187,21 @@
 
 5. Change `spec.containers.image` to `greeting-service:0.0.2-SNAPSHOT-METRIC` at `deployment.yaml`
 
-    ```yaml
-    
-    ...
+   ```yaml
 
-    spec:
-      containers:
-        - image: greeting-service:0.0.2-SNAPSHOT-METRIC     <============== change here
-          imagePullPolicy: IfNotPresent
-          name: greeting-service
-
-    ...
-
-    ```
+   ---
+   spec:
+     containers:
+       - image: greeting-service:0.0.2-SNAPSHOT-METRIC     <============== change here
+         imagePullPolicy: IfNotPresent
+         name: greeting-service
+   ```
 
 6. Change to `k8s` directory and apply deployment
 
-    ```sh
-    kubectl apply -f deployment.yaml
-    ```
+   ```sh
+   kubectl apply -f deployment.yaml
+   ```
 
 7. Open http://localhost:8080/actuator, should see `prometheus` path
 
@@ -214,73 +211,74 @@
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/prometheus`
-    - Change directory to `k8s/prometheus`
+   - Create directory call `k8s/prometheus`
+   - Change directory to `k8s/prometheus`
 
-      ```sh
-      cd prometheus
-      ```
+     ```sh
+     cd prometheus
+     ```
 
 2. Prepare files
 
-    - Create `Chart.yaml`
+   - Create `Chart.yaml`
 
-      ```yaml
-        apiVersion: v2
-        name: my-prometheus-helm
-        description: A Helm chart for Prometheus Demo
-        type: application
-        version: 1.0.0
+     ```yaml
+     apiVersion: v2
+     name: my-prometheus-helm
+     description: A Helm chart for Prometheus Demo
+     type: application
+     version: 1.0.0
 
-        dependencies:
-          - name: "prometheus"
-            alias: prometheus
-            condition: prometheus.enabled
-            repository: "https://prometheus-community.github.io/helm-charts"
-            version: "25.19.1"
-      ```
+     dependencies:
+       - name: 'prometheus'
+         alias: prometheus
+         condition: prometheus.enabled
+         repository: 'https://prometheus-community.github.io/helm-charts'
+         version: '25.19.1'
+     ```
 
    - Create `values.yaml`
 
-      ```yaml
-      prometheus:
-        server:
-          ingress:
-            enabled: true
-            hosts:
-              - prometheus.example.com
-        serverFiles:
-          prometheus.yml:
-            scrape_configs:
-              - job_name: 'spring-boot-application'
-                metrics_path: '/actuator/prometheus'
-                scrape_interval: 3s # This can be adjusted based on our needs
-                static_configs:
-                  - targets: ['greeting-service.default.svc.cluster.local:8080']
-                    labels:
-                      application: 'Greeting service'
-      ```
+     ```yaml
+     prometheus:
+       server:
+         ingress:
+           enabled: true
+           hosts:
+             - prometheus.example.com
+       serverFiles:
+         prometheus.yml:
+           scrape_configs:
+             - job_name: 'spring-boot-application'
+               metrics_path: '/actuator/prometheus'
+               scrape_interval: 3s # This can be adjusted based on our needs
+               static_configs:
+                 - targets: ['greeting-service.default.svc.cluster.local:8080']
+                   labels:
+                     application: 'Greeting service'
+     ```
 
 3. Running Prometheus with Helm
 
-    - Add repository
-    
-      ```sh
-      helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-      ```
+   - Add repository
 
-    - Update dependencies
+     ```sh
+     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+     ```
 
-      ```sh
-      helm dependency update
-      ```
-    - Running prometheus
+   - Update dependencies
 
-      ```sh
-      helm upgrade -i prometheus . -n monitoring --create-namespace
-      ```
+     ```sh
+     helm dependency update
+     ```
 
-    - Open: http://prometheus.example.com:8888
+   - Running prometheus
+
+     ```sh
+     helm upgrade -i prometheus . -n monitoring --create-namespace
+     ```
+
+   - Open: http://prometheus.example.com:8888
 
 ---
 
@@ -288,73 +286,74 @@
 
 1. Create and Change Working Directory
 
-    - Create directory call `k8s/grafana`
-    - Change directory to `k8s/grafana`
+   - Create directory call `k8s/grafana`
+   - Change directory to `k8s/grafana`
 
-      ```sh
-      cd grafana
-      ```
+     ```sh
+     cd grafana
+     ```
 
 2. Prepare files
 
-    - Create `Chart.yaml`
+   - Create `Chart.yaml`
 
-      ```yaml
-      apiVersion: v2
-      name: my-grafana-helm
-      description: A Helm chart for Grafana Demo
-      type: application
-      version: 1.0.0
+     ```yaml
+     apiVersion: v2
+     name: my-grafana-helm
+     description: A Helm chart for Grafana Demo
+     type: application
+     version: 1.0.0
 
-      dependencies:
-        - name: "grafana"
-          alias: grafana
-          condition: grafana.enabled
-          repository: "https://grafana.github.io/helm-charts"
-          version: "8.0.0"
-      ```
+     dependencies:
+       - name: 'grafana'
+         alias: grafana
+         condition: grafana.enabled
+         repository: 'https://grafana.github.io/helm-charts'
+         version: '8.0.0'
+     ```
 
    - Create `values.yaml`
 
-      ```yaml
-      grafana:
-        ingress:
-          enabled: true
-          hosts:
-            - grafana.example.com
-      ```
+     ```yaml
+     grafana:
+       ingress:
+         enabled: true
+         hosts:
+           - grafana.example.com
+     ```
 
 3. Running Grafana with Helm
 
-    - Add repository
+   - Add repository
 
-      ```sh
-      helm repo add grafana https://grafana.github.io/helm-charts
-      ```
+     ```sh
+     helm repo add grafana https://grafana.github.io/helm-charts
+     ```
 
-    - Update dependencies
+   - Update dependencies
 
-      ```sh
-      helm dependency update
-      ```
-    - Running prometheus
+     ```sh
+     helm dependency update
+     ```
 
-      ```sh
-      helm upgrade -i grafana . -n monitoring --create-namespace
-      ```
+   - Running prometheus
 
-    - Open: http://grafana.example.com:8888
+     ```sh
+     helm upgrade -i grafana . -n monitoring --create-namespace
+     ```
+
+   - Open: http://grafana.example.com:8888
 
 4. Login
 
-    - Username: **admin**
-    - Password:
+   - Username: **admin**
+   - Password:
 
-      ```sh
-        kubectl get secret grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d ; echo
-      ```
+     ```sh
+     kubectl get secret grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+     ```
 
 5. Set datasources from Prometheus
 
-    - Prometheus server URL: `http://prometheus-server`
-    - Import dashboard id: `11378`
+   - Prometheus server URL: `http://prometheus-server`
+   - Import dashboard id: `11378`
