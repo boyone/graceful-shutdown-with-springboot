@@ -30,13 +30,20 @@
 
 ### Hello Kubernetes with `k3d`
 
-1. Continue use cluster from `observability_metric`, import image to cluster
+1. Create Cluster
 
-    ```sh
-    k3d image import greeting-service:0.0.1-SNAPSHOT-TRACING --cluster default
-    ```
+   ```sh
+   k3d cluster create default -p "8080:8080@loadbalancer" -p "8888:80@loadbalancer" --servers 1 --agents 3
+   kubectl get nodes
+   ```
 
-2. Create `k8s` directory to contains k8s-manifest
+2. Import image to cluster
+
+   ```sh
+   k3d image import greeting-service:0.0.1-SNAPSHOT-TRACING --cluster default
+   ```
+
+3. Create `k8s` directory to contains k8s-manifest
 
    - Change directory to root-working-directory(`observability_tracing`)
 
@@ -64,7 +71,7 @@
      cd k8s
      ```
 
-3. Create Deployment call deployment.yaml
+4. Create Deployment call deployment.yaml
 
     ```yaml
     apiVersion: apps/v1
@@ -110,7 +117,7 @@
 
    Reference: <https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_protocol>
 
-4. Create Service service.yaml
+5. Create Service service.yaml
 
    ```yaml
    apiVersion: v1
@@ -139,7 +146,7 @@
        |-service.yaml
    ```
 
-5. Create Deployment with `apply`
+6. Create Deployment with `apply`
 
    ```sh
    kubectl apply -f deployment.yaml
@@ -147,14 +154,14 @@
    kubectl get pods
    ```
 
-6. Create Service with `apply`
+7. Create Service with `apply`
 
    ```sh
    kubectl apply -f service.yaml
    kubectl get service
    ```
 
-7. Open <http://localhost:8080>
+8. Open <http://localhost:8080>
 
 ---
 
